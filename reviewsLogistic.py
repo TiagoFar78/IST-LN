@@ -21,8 +21,9 @@ def preprocess_text(text):
     words = text.split()
     
     lemmatized_words = [lemmatizer.lemmatize(word) for word in words]
+    stemmed_words = [stemmer.stem(word) for word in lemmatized_words]
 
-    return ' '.join(lemmatized_words)
+    return ' '.join(stemmed_words)
 
 def load_data(file_path):
     data = []
@@ -30,8 +31,10 @@ def load_data(file_path):
         for line in f:
             title, movie_from, genre, director, plot = line.strip().split('\t')
             plot = preprocess_text(plot)
-            data.append((plot, genre))
-    return pd.DataFrame(data, columns=["plot", "genre"])
+            director = preprocess_text(director) 
+            movie_from = preprocess_text(movie_from)
+            data.append((plot, director, movie_from, genre)) 
+    return pd.DataFrame(data, columns=["plot", "director", "movie_from", "genre"])
 
 def prepare_data(data):
     train_df, test_df = train_test_split(
@@ -40,10 +43,13 @@ def prepare_data(data):
         stratify=data['genre'], 
         random_state=42
     )
-    
+
+    train_df['combined'] = train_df['plot'] + ' ' + train_df['director'] + ' ' + train_df['movie_from']
+    test_df['combined'] = test_df['plot'] + ' ' + test_df['director'] + ' ' + test_df['movie_from']
+
     vectorizer = TfidfVectorizer(max_features=5000)
-    X_train = vectorizer.fit_transform(train_df['plot'])
-    X_test = vectorizer.transform(test_df['plot'])
+    X_train = vectorizer.fit_transform(train_df['combined'])  
+    X_test = vectorizer.transform(test_df['combined']) 
     
     genre_mapping = {genre: i for i, genre in enumerate(data['genre'].unique())}
     train_labels = train_df['genre'].map(genre_mapping)
