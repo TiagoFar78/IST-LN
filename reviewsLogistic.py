@@ -40,8 +40,7 @@ def prepare_data(data):
     train_df, test_df = train_test_split(
         data, 
         test_size=0.2, 
-        stratify=data['genre'], 
-        random_state=42
+        stratify=data['genre']
     )
 
     train_df['combined'] = train_df['plot'] + ' ' + train_df['director'] + ' ' + train_df['movie_from']
@@ -58,7 +57,7 @@ def prepare_data(data):
     return X_train, X_test, train_labels, test_labels, genre_mapping
 
 def train_model(X_train, train_labels):
-    model = LogisticRegression(max_iter=1000, random_state=42)
+    model = LogisticRegression(max_iter=1000)
     model.fit(X_train, train_labels)
     return model
 

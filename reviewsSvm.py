@@ -49,7 +49,6 @@ def prepare_data(data):
         data, 
         test_size=0.2, 
         stratify=data['genre'], 
-        random_state=42
     )
 
     train_df['combined'] = train_df['plot'] + ' ' + train_df['director'] + ' ' + train_df['movie_from'] + ' ' + train_df['title'] 
@@ -69,7 +68,7 @@ def prepare_data(data):
 
 # Function to train the SVC model
 def train_model(X_train, train_labels):
-    model = SVC(kernel='linear', random_state=42)
+    model = SVC(kernel='linear')
     model.fit(X_train, train_labels)
     return model
 
