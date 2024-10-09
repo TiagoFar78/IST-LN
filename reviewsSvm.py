@@ -26,7 +26,8 @@ def preprocess_text(text):
     
     # Lemmatize words
     lemmatized_words = [lemmatizer.lemmatize(word) for word in words]
-    return ' '.join(lemmatized_words)
+    stemmed_words = [stemmer.stem(word) for word in lemmatized_words]
+    return ' '.join(stemmed_words)
 
 # Function to load data from file
 def load_data(file_path):
@@ -35,9 +36,12 @@ def load_data(file_path):
         for line in f:
             title, movie_from, genre, director, plot = line.strip().split('\t')
             plot = preprocess_text(plot)  # Preprocess plot
-            data.append((plot, genre))
-    return pd.DataFrame(data, columns=["plot", "genre"])
-
+            director = preprocess_text(director) 
+            movie_from = preprocess_text(movie_from)
+            title = preprocess_text(title)
+            data.append((plot, director, movie_from, title, genre)) 
+    return pd.DataFrame(data, columns=["plot", "director", "movie_from", "title", "genre"])
+        
 # Function to prepare data for training
 def prepare_data(data):
     # Split into train and test sets
@@ -47,11 +51,14 @@ def prepare_data(data):
         stratify=data['genre'], 
         random_state=42
     )
+
+    train_df['combined'] = train_df['plot'] + ' ' + train_df['director'] + ' ' + train_df['movie_from'] + ' ' + train_df['title'] 
+    test_df['combined'] = test_df['plot'] + ' ' + test_df['director'] + ' ' + test_df['movie_from'] + ' ' +  test_df['title'] 
     
     # Use TfidfVectorizer to transform text
-    vectorizer = TfidfVectorizer(max_features=5000)
-    X_train = vectorizer.fit_transform(train_df['plot'])
-    X_test = vectorizer.transform(test_df['plot'])
+    vectorizer = TfidfVectorizer(max_features=10000, ngram_range=(1, 2), sublinear_tf= True)  # Use bigrams  
+    X_train = vectorizer.fit_transform(train_df['combined'])
+    X_test = vectorizer.transform(test_df['combined'])
     
     # Map genres to numerical labels
     genre_mapping = {genre: i for i, genre in enumerate(data['genre'].unique())}
