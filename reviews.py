@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, Trainer, TrainingArguments
 import re
 from nltk.corpus import stopwords, wordnet
-from nltk.stem import WordNetLemmatizer
+from nltk.stem import WordNetLemmatizer, PorterStemmer
 import nltk
 
 # Download stopwords if not already available
@@ -19,6 +19,7 @@ nltk.download('omw-1.4')
 
 # Initialize lemmatizer
 lemmatizer = WordNetLemmatizer()
+stemmer = PorterStemmer()
 
 # Preprocessing function: lowercase, remove punctuation, and optionally stopwords
 def preprocess_text(text):
@@ -32,10 +33,10 @@ def preprocess_text(text):
     words = text.split()
     lemmatized_words = [lemmatizer.lemmatize(word, pos=wordnet.VERB) for word in words]
 
-    #stop_words = set(stopwords.words('english'))
-    #text = " ".join([word for word in lemmatized_words if word not in stop_words])
+    stop_words = set(stopwords.words('english'))
+    text = " ".join([word for word in lemmatized_words if word not in stop_words])
     
-    return ' '.join(lemmatized_words)
+    return text #' '.join(lemmatized_words)
 
 # Load and preprocess data
 def load_data(file_path):

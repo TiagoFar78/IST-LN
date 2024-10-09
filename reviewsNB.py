@@ -1,0 +1,76 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, confusion_matrix
+from nltk.stem import WordNetLemmatizer, PorterStemmer
+from nltk.corpus import wordnet
+import nltk
+import matplotlib.pyplot as plt
+import seaborn as sns
+import re
+
+nltk.download('wordnet')
+
+lemmatizer = WordNetLemmatizer()
+stemmer = PorterStemmer()
+
+def preprocess_plot(text):
+    text.lower()
+
+    text = re.sub(r'[^\w\s]', '', text)
+
+    #words = [lemmatizer.lemmatize(word) for word in text.split()]
+    words = [stemmer.stem(word) for word in text.split()]
+
+    return ' '.join(words)
+
+# Load and preprocess data
+def load_data(file_path):
+    data = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            title, movie_from, genre, director, plot = line.strip().split('\t')
+            combined_features = f"{title} {movie_from} {plot}"
+            data.append((preprocess_plot(combined_features), genre))
+    return pd.DataFrame(data, columns=["plot", "genre"])
+
+# Load data from file
+train_data = load_data('train.txt')
+
+# Train-test split (80% train, 20% test) with stratified sampling by genre
+train_df, test_df = train_test_split(train_data, test_size=0.2, stratify=train_data['genre'])
+
+# Initialize CountVectorizer (you can also limit the max number of features)
+vectorizer = CountVectorizer(max_features=7000, stop_words='english')
+
+# Fit and transform the train plots, and transform the test plots
+X_train = vectorizer.fit_transform(train_df['plot'])
+X_test = vectorizer.transform(test_df['plot'])
+
+# Labels (target) mapping genres to numbers
+genre_mapping = {genre: i for i, genre in enumerate(train_data['genre'].unique())}
+y_train = train_df['genre'].map(genre_mapping)
+y_test = test_df['genre'].map(genre_mapping)
+
+# Train the Multinomial Naive Bayes model
+nb_model = MultinomialNB()
+nb_model.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = nb_model.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Test Accuracy: {accuracy:.4f}")
+
+# Confusion Matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+# Plot confusion matrix
+plt.figure(figsize=(10, 8))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=genre_mapping.keys(), yticklabels=genre_mapping.keys())
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.title('Confusion Matrix')
+plt.show()
