@@ -74,3 +74,29 @@ plt.xlabel('Predicted')
 plt.ylabel('True')
 plt.title('Confusion Matrix')
 plt.show()
+
+# ---- Extract misclassified examples ----
+
+# Create a DataFrame with true and predicted labels
+test_df['true_genre'] = y_test.map({v: k for k, v in genre_mapping.items()})
+test_df['predicted_genre'] = [list(genre_mapping.keys())[list(genre_mapping.values()).index(pred)] for pred in y_pred]
+
+# Filter out misclassified examples
+misclassified = test_df[test_df['true_genre'] != test_df['predicted_genre']]
+
+# Specify genres of interest (comedy, drama, romance)
+genres_of_interest = ['comedy', 'drama', 'romance']
+
+# Filter misclassified examples involving only comedy, drama, and romance
+misclassified_filtered = misclassified[
+    (misclassified['true_genre'].isin(genres_of_interest)) & 
+    (misclassified['predicted_genre'].isin(genres_of_interest))
+]
+
+# Select relevant columns to save to the file
+misclassified_output = misclassified_filtered[['plot', 'true_genre', 'predicted_genre']]
+
+# Write the filtered misclassified examples to a CSV file
+misclassified_output.to_csv('filtered_misclassified_examples.csv', index=False)
+
+print("Filtered misclassified examples written to 'filtered_misclassified_examples.csv'.")
