@@ -47,7 +47,7 @@ def prepare_data(data):
     train_df['combined'] = train_df['plot'] + ' ' + train_df['director'] + ' ' + train_df['movie_from']
     test_df['combined'] = test_df['plot'] + ' ' + test_df['director'] + ' ' + test_df['movie_from']
 
-    vectorizer = TfidfVectorizer(max_features=4000, sublinear_tf=True)
+    vectorizer = TfidfVectorizer(max_features=10000, sublinear_tf=True)
     X_train = vectorizer.fit_transform(train_df['combined'])  
     X_test = vectorizer.transform(test_df['combined']) 
     
