@@ -23,7 +23,14 @@ def preprocess_text(text):
     lemmatized_words = [lemmatizer.lemmatize(word) for word in words]
     stemmed_words = [stemmer.stem(word) for word in lemmatized_words]
 
-    return ' '.join(stemmed_words)
+    custom_words = set(['hi', 'ha', 'go', 'life', 'get', 'take', 'wa', 'life', 'friend'])  
+    
+    stop_words = set(stopwords.words('english'))  
+    all_stopwords = stop_words.union(custom_words)  
+    
+    text = " ".join([word for word in stemmed_words if word not in all_stopwords])
+
+    return text
 
 def load_data(file_path):
     data = []
@@ -57,7 +64,7 @@ def prepare_data(data):
     return X_train, X_test, train_labels, test_labels, genre_mapping
 
 def train_model(X_train, train_labels):
-    model = LogisticRegression(max_iter=1000)
+    model = LogisticRegression(max_iter=1000, class_weight='balanced')
     model.fit(X_train, train_labels)
     return model
 
@@ -69,20 +76,11 @@ def evaluate_model(model, X_test, test_labels):
 
 def plot_confusion_matrix(test_labels, predictions, genre_mapping):
     conf_matrix = confusion_matrix(test_labels, predictions)
-    plt.figure(figsize=(12, 10))
-    sns.heatmap(
-        conf_matrix, 
-        annot=True, 
-        fmt='d', 
-        cmap='Blues',
-        xticklabels=genre_mapping.keys(),
-        yticklabels=genre_mapping.keys()
-    )
-    plt.xlabel('Predicted Genre')
-    plt.ylabel('True Genre')
-    plt.title('Genre Classification Confusion Matrix')
-    plt.xticks(rotation=45, ha='right')
-    plt.tight_layout()
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=genre_mapping.keys(), yticklabels=genre_mapping.keys())
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title('Confusion Matrix')
     plt.show()
 
 def main():
