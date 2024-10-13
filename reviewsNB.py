@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, confusion_matrix
@@ -55,6 +55,11 @@ y_test = test_df['genre'].map(genre_mapping)
 
 # Train the Multinomial Naive Bayes model
 nb_model = MultinomialNB()
+cv_scores = cross_val_score(nb_model, X_train, y_train, cv=5, scoring='accuracy')
+
+# Print the results of cross-validation
+print(f"Cross-Validation Scores (5-fold): {cv_scores}")
+print(f"Mean Cross-Validation Accuracy: {cv_scores.mean():.4f}")
 nb_model.fit(X_train, y_train)
 
 # Make predictions on the test set
