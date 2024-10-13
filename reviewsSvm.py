@@ -23,11 +23,17 @@ def preprocess_text(text):
     text = text.lower()
     text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
     words = text.split()
-    
+
+   
     # Lemmatize words
     lemmatized_words = [lemmatizer.lemmatize(word) for word in words]
     stemmed_words = [stemmer.stem(word) for word in lemmatized_words]
-    return ' '.join(stemmed_words)
+
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    text = " ".join([word for word in stemmed_words if word not in stop_words])
+    
+    return text
 
 # Function to load data from file
 def load_data(file_path):
@@ -55,7 +61,7 @@ def prepare_data(data):
     test_df['combined'] = test_df['plot'] + ' ' + test_df['director'] + ' ' + test_df['movie_from'] + ' ' +  test_df['title'] 
     
     # Use TfidfVectorizer to transform text
-    vectorizer = TfidfVectorizer(max_features=10000, ngram_range=(1, 2), sublinear_tf= True)  # Use bigrams  
+    vectorizer = TfidfVectorizer(max_features=10000, ngram_range=(1, 3), sublinear_tf= True)  # Use bigrams  
     X_train = vectorizer.fit_transform(train_df['combined'])
     X_test = vectorizer.transform(test_df['combined'])
     
